@@ -20,11 +20,7 @@ class PlayerNotifier extends StateNotifier<Player> {
     if (raw == null) return;
     try {
       final map = jsonDecode(raw) as Map<String, dynamic>;
-      state = Player(
-        name: map['name'] as String? ?? 'Rookie',
-        level: (map['level'] as int?) ?? 1,
-        xp: (map['xp'] as int?) ?? 0,
-      );
+      state = Player.fromJson(map);
     } catch (_) {
       // ignore malformed data and keep defaults
     }
@@ -32,8 +28,31 @@ class PlayerNotifier extends StateNotifier<Player> {
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
-    final map = {'name': state.name, 'level': state.level, 'xp': state.xp};
-    await prefs.setString(_playerPrefsKey, jsonEncode(map));
+    await prefs.setString(_playerPrefsKey, jsonEncode(state.toJson()));
+  }
+
+  void register(String name, String characterClass) {
+    state = state.copyWith(
+      name: name,
+      characterClass: characterClass,
+      isRegistered: true,
+    );
+    _save();
+  }
+
+  void updateStats({
+    int? strength,
+    int? agility,
+    int? intelligence,
+    int? vitality,
+  }) {
+    state = state.copyWith(
+      strength: strength,
+      agility: agility,
+      intelligence: intelligence,
+      vitality: vitality,
+    );
+    _save();
   }
 
   void addXp(int amount) {

@@ -15,27 +15,33 @@ List<Quest> _generateDaily() {
   return [
     Quest(
       id: _uuid.v4(),
-      title: 'Morning Jog',
+      title: 'วิ่งเช้า',
       description: 'วิ่งเบา 20 นาที',
       xpReward: 20,
       completed: false,
       date: today,
+      difficulty: QuestDifficulty.medium,
+      category: 'ออกกำลังกาย',
     ),
     Quest(
       id: _uuid.v4(),
-      title: 'Push-up Set',
+      title: 'Push-up',
       description: '3 เซ็ต 12 ครั้ง',
-      xpReward: 15,
+      xpReward: 10,
       completed: false,
       date: today,
+      difficulty: QuestDifficulty.easy,
+      category: 'ออกกำลังกาย',
     ),
     Quest(
       id: _uuid.v4(),
-      title: 'Core Training',
-      description: 'Plank 3 x 60s',
-      xpReward: 18,
+      title: 'ดื่มน้ำ 8 แก้ว',
+      description: 'ดื่มน้ำให้ครบ 2 ลิตร',
+      xpReward: 10,
       completed: false,
       date: today,
+      difficulty: QuestDifficulty.easy,
+      category: 'สุขภาพ',
     ),
   ];
 }
@@ -58,17 +64,7 @@ class QuestNotifier extends StateNotifier<List<Quest>> {
     try {
       final list = jsonDecode(raw) as List<dynamic>;
       state =
-          list.map((e) {
-            final m = e as Map<String, dynamic>;
-            return Quest(
-              id: m['id'] as String,
-              title: m['title'] as String,
-              description: m['description'] as String,
-              xpReward: m['xpReward'] as int,
-              completed: m['completed'] as bool,
-              date: DateTime.parse(m['date'] as String),
-            );
-          }).toList();
+          list.map((e) => Quest.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
       state = _generateDaily();
       _save();
@@ -77,20 +73,23 @@ class QuestNotifier extends StateNotifier<List<Quest>> {
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
-    final list =
-        state
-            .map(
-              (q) => {
-                'id': q.id,
-                'title': q.title,
-                'description': q.description,
-                'xpReward': q.xpReward,
-                'completed': q.completed,
-                'date': q.date.toIso8601String(),
-              },
-            )
-            .toList();
+    final list = state.map((q) => q.toJson()).toList();
     await prefs.setString(_questsPrefsKey, jsonEncode(list));
+  }
+
+  void addQuest(Quest quest) {
+    state = [...state, quest];
+    _save();
+  }
+
+  void deleteQuest(String id) {
+    state = state.where((q) => q.id != id).toList();
+    _save();
+  }
+
+  void updateQuest(Quest quest) {
+    state = state.map((q) => q.id == quest.id ? quest : q).toList();
+    _save();
   }
 
   void toggle(String id) {
