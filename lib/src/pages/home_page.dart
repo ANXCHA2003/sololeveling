@@ -30,7 +30,7 @@ class HomePage extends ConsumerWidget {
     final completedToday = quests.where((q) => q.completed).length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Solo Leveling'), centerTitle: true),
+      appBar: AppBar(title: const Text('Solo'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
